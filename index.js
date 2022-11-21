@@ -1,34 +1,41 @@
 const startBtn = document.querySelector('#start');
 const stopBtn = document.querySelector('#stop');
 const output = document.querySelector('#output');
-const [nameBot, nameUser] = ['James', 'Dayvid'];
+const [nameBot, nameUser] = ['panda', 'Dayvid'];
 
-const miniConfig = {
-    lang: ['en-PT', 'pt-PT']
+const langConfig = {
+    language: ['en-EN', 'pt-PT']
 };
-const commandEnglie = {
-    takeRest: `${nameBot} take a break`,
-    activeBot: `hey ${nameBot}`,
-};
-function takeCommandPT (command) {
+
+function takeCommand (event, command, message, callback) {
     
     const commandPT = {
-        0: () => output.textContent = command,
-        1: () => output.textContent = `Olá, ${nameUser}!`,
+        0: () => message,
+        1: () => `Olá, ${nameUser}!`,
+        2: () => `Estou testando o meu reconhecimento de voz.\n \nVeja só, funciona!`,
     };
-
-    return commandPT[command]?.() ?? console.log(command);
+    
+    const commandEN = {
+        0: () => message,
+        1: () => `hey ${nameBot}`,
+        2: () => `${nameBot} take a break`,
+    };
+    callback()
+    return commandPT[command]()
+    //return event.lang == 'pt-PT' ? commandPT[command]() : event.lang == 'en-EN' ? commandEN[command]() : console.error('Not language config');
 
 };
 
 function scoreComamandsWords(command) {
-    return command == `olá ${nameBot}` ? 1 : 0
+    return command == `${nameBot}` ? 1 : `${nameBot} desligar` ? 2 : 0
 };
 
-function start() {
+const filterMessage = (message) => message.charAt(0).toUpperCase() + string.slice(1);
+
+function startRecognition() {
     const recognition = new webkitSpeechRecognition();
     recognition.interimResults = true;
-    recognition.lang = miniConfig.lang[1];
+    recognition.lang = langConfig.language[1];
     recognition.continuous = true;
     recognition.start();
 
@@ -37,17 +44,19 @@ function start() {
             if (event.results[i].isFinal) {
                 const content = event.results[i][0].transcript.trim();
 
-                takeCommandPT(
-                    scoreComamandsWords(content)
-                );
-                
+                output.textContent = takeCommand(recognition, scoreComamandsWords(content), content, () => {
+                    console.log('Read'),
+                    console.log(event),
+                    console.log(recognition)
+                })
                 
                 stopBtn.addEventListener('click', () => recognition.stop());
+                
             };
         };
     };
 };
 
 
-start()
+startRecognition()
 startBtn.addEventListener('click', () => start());
